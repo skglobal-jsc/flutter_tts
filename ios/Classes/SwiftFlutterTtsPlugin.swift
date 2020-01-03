@@ -47,6 +47,18 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
       self.speak(text: text)
       result(1)
       break
+    case "pause":
+        let isSucess = self.pause()
+        result(NSNumber(value: isSucess))
+        break
+    case "resume":
+        let isSucess = self.resume()
+        result(NSNumber(value: isSucess))
+        break
+    case "isSpeaking":
+        let isSpeaking = self.isSpeaking()
+        result(NSNumber(value: isSpeaking))
+        break
     case "setLanguage":
       let language: String = call.arguments as! String
       self.setLanguage(language: language, result: result)
@@ -100,6 +112,17 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     
     self.synthesizer.speak(utterance)
   }
+    private func pause() -> Bool {
+        return self.synthesizer.pauseSpeaking(at: AVSpeechBoundary.immediate)
+    }
+    
+    private func resume() -> Bool {
+        return self.synthesizer.continueSpeaking()
+    }
+    
+    private func isSpeaking() -> Bool {
+        return self.synthesizer.isSpeaking
+    }
 
   private func setLanguage(language: String, result: FlutterResult) {
     if !(self.languages.contains(where: {$0.range(of: language, options: [.caseInsensitive, .anchored]) != nil})) {

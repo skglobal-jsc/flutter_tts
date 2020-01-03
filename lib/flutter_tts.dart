@@ -19,6 +19,12 @@ class FlutterTts {
 
   /// [Future] which invokes the platform specific method for speaking
   Future<dynamic> speak(String text) => _channel.invokeMethod('speak', text);
+  
+  Future<bool> pause() => _channel.invokeMethod('pause');
+
+  Future<bool> resume() => _channel.invokeMethod('resume');
+  
+  Future<bool> isSpeaking() => _channel.invokeMethod('isSpeaking');
 
   /// [Future] which invokes the platform specific method for setLanguage
   Future<dynamic> setLanguage(String language) =>
