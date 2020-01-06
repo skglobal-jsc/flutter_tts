@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +20,18 @@ class FlutterTts {
   }
 
   /// [Future] which invokes the platform specific method for speaking
-  Future<dynamic> speak(String text) => _channel.invokeMethod('speak', text);
+  /// fastMode will support only for Android Platform
+  /// fastMode is true if you want to skip convert tts to audio file. In this case, we can support pause/resume
+  Future<dynamic> speak(String text, {bool fastMode = false}) {
+    if (Platform.isAndroid) {
+      _channel.invokeMethod('speak', {
+        'text': text,
+        'fastMode': fastMode
+      });
+    } else {
+      _channel.invokeMethod('speak', text);
+    }
+  }
   
   Future<bool> pause() => _channel.invokeMethod('pause');
 

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 public class AndroidTTS {
@@ -25,9 +26,10 @@ public class AndroidTTS {
     private final CountDownLatch ttsInitLatch = new CountDownLatch(1);
     private final String tag = "TTS";
     private final String googleTtsEngine = "com.google.android.tts";
-    //    String uuid;
-    Bundle bundle;
-    //    private int silencems;
+    private String uuid;
+    private Bundle bundle;
+    private boolean mFastMode = false;
+    private int silencems;
     private static final String SILENCE_PREFIX = "SIL_";
     private Context context;
     private IAndroidTTsCallback ttsListener;
@@ -36,24 +38,24 @@ public class AndroidTTS {
             new UtteranceProgressListener() {
                 @Override
                 public void onStart(String utteranceId) {
-//                    invokeMethod("speak.onStart", true);
+                    ttsListener.onStart();
                 }
 
                 @Override
                 public void onDone(String utteranceId) {
-//                    if (utteranceId != null && utteranceId.startsWith(SILENCE_PREFIX)) return;
-//                    invokeMethod("speak.onComplete", true);
+                    if (utteranceId != null && utteranceId.startsWith(SILENCE_PREFIX)) return;
+                    ttsListener.onComplete();
                 }
 
                 @Override
                 @Deprecated
                 public void onError(String utteranceId) {
-//                    invokeMethod("speak.onError", "Error from TextToSpeech");
+                    ttsListener.onError(utteranceId);
                 }
 
                 @Override
                 public void onError(String utteranceId, int errorCode) {
-//                    invokeMethod("speak.onError", "Error from TextToSpeech - " + errorCode);
+                    ttsListener.onError(utteranceId);
                 }
             };
 
@@ -91,6 +93,7 @@ public class AndroidTTS {
     public AndroidTTS(Context context, IAndroidTTsCallback listener) {
         this.context = context;
         this.ttsListener = listener;
+        bundle = new Bundle();
         tts = new TextToSpeech(context.getApplicationContext(), onInitListener, googleTtsEngine);
     }
 
@@ -111,6 +114,10 @@ public class AndroidTTS {
             return 1;
         }
         return 0;
+    }
+
+    public void setSilencems(int s) {
+        this.silencems = s;
     }
 
     public int setVoice(String voice) {
@@ -177,49 +184,73 @@ public class AndroidTTS {
 
     private SoundPoolPlayer player;
 
-    public void speak(String text) {
-        generateAudioFile(text, new IGenerateTTsCallback() {
-            @Override
-            public void onSuccess(File audio) {
-                if (player != null) {
-                    player.stop();
-                    player.release();
-                }
-                player = SoundPoolPlayer.create(context, audio.getAbsolutePath());
-                player.setOnCompletionListener(onCompletionListener);
-                player.play();
-                ttsListener.onStart();
-            }
+    public void speak(String text, boolean fastMode) {
+        this.mFastMode = fastMode;
 
-            @Override
-            public void onError(String message) {
-                Log.e(TAG, message);
-                ttsListener.onError(message);
+        // we should stop all audio in here
+
+        if (fastMode) {
+            uuid = UUID.randomUUID().toString();
+            if (silencems > 0) {
+                tts.playSilentUtterance(silencems, TextToSpeech.QUEUE_FLUSH, SILENCE_PREFIX + uuid);
+                tts.speak(text, TextToSpeech.QUEUE_ADD, bundle, uuid);
+            } else {
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, bundle, uuid);
             }
-        });
+        } else {
+            generateAudioFile(text, new IGenerateTTsCallback() {
+                @Override
+                public void onSuccess(File audio) {
+                    if (player != null) {
+                        player.stop();
+                        player.release();
+                    }
+                    player = SoundPoolPlayer.create(context, audio.getAbsolutePath());
+                    player.setOnCompletionListener(onCompletionListener);
+                    player.play();
+                    ttsListener.onStart();
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e(TAG, message);
+                    ttsListener.onError(message);
+                }
+            });
+        }
     }
 
     public void stop() {
-        if (player != null) {
-            player.stop();
+        if (mFastMode) {
+            tts.stop();
+        } else {
+            if (player != null) {
+                player.stop();
+            }
         }
     }
 
     public void pause() {
-        if (player != null) {
-            player.pause();
+        if (!mFastMode) {
+            if (player != null) {
+                player.pause();
+            }
         }
     }
 
     public void resume() {
-        if (player != null) {
-            player.resume();
+        if (!mFastMode) {
+            if (player != null) {
+                player.resume();
+            }
         }
     }
 
     public boolean isSpeaking() {
-        if (player != null) {
-            return player.isPlaying();
+        if (!mFastMode) {
+            if (player != null) {
+                return player.isPlaying();
+            }
         }
         return false;
     }

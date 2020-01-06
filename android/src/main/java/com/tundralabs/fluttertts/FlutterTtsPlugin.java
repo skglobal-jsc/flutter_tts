@@ -65,8 +65,9 @@ public class FlutterTtsPlugin implements MethodCallHandler {
     @Override
     public void onMethodCall(MethodCall call, Result result) {
         if (call.method.equals("speak")) {
-            String text = call.arguments.toString();
-            androidTTS.speak(text);
+            String text = call.argument("text");
+            boolean fastMode = call.argument("fastMode");
+            androidTTS.speak(text, fastMode);
             result.success(1);
         } else if (call.method.equals("stop")) {
             androidTTS.stop();
@@ -105,7 +106,7 @@ public class FlutterTtsPlugin implements MethodCallHandler {
             result.success(androidTTS.isLanguageAvailable(locale));
         } else if (call.method.equals("setSilence")) {
             String silencems = call.arguments.toString();
-//            this.silencems = Integer.parseInt(silencems);
+            androidTTS.setSilencems(Integer.parseInt(silencems));
             result.success(1);
         } else {
             result.notImplemented();
