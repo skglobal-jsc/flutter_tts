@@ -121,7 +121,7 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     }
     
     private func isSpeaking() -> Bool {
-        return self.synthesizer.isSpeaking
+        return self.synthesizer.isSpeaking && !self.synthesizer.isPaused
     }
 
   private func setLanguage(language: String, result: FlutterResult) {
