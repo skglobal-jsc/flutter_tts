@@ -74,12 +74,12 @@ public class FlutterTtsPlugin implements MethodCallHandler {
             result.success(1);
         } else if (call.method.equals("pause")) {
             androidTTS.pause();
-            result.success(1);
+            result.success(true);
         } else if (call.method.equals("resume")) {
             androidTTS.resume();
-            result.success(1);
+            result.success(true);
         } else if (call.method.equals("isSpeaking")) {
-            result.success(androidTTS.isSpeaking() ? 1 : 0);
+            result.success(androidTTS.isSpeaking());
         } else if (call.method.equals("setSpeechRate")) {
             String rate = call.arguments.toString();
             androidTTS.setSpeechRate(Float.parseFloat(rate));
