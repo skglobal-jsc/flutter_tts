@@ -221,36 +221,27 @@ public class AndroidTTS {
     }
 
     public void stop() {
-        if (mFastMode) {
-            tts.stop();
-        } else {
-            if (player != null) {
-                player.stop();
-            }
+        tts.stop();
+        if (player != null) {
+            player.stop();
         }
     }
 
     public void pause() {
-        if (!mFastMode) {
-            if (player != null) {
-                player.pause();
-            }
+        if (player != null) {
+            player.pause();
         }
     }
 
     public void resume() {
-        if (!mFastMode) {
-            if (player != null) {
-                player.resume();
-            }
+        if (player != null) {
+            player.resume();
         }
     }
 
     public boolean isSpeaking() {
-        if (!mFastMode) {
-            if (player != null) {
-                return player.isPlaying();
-            }
+        if (player != null) {
+            return player.isPlaying();
         }
         return false;
     }
