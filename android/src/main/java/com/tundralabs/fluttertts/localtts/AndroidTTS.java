@@ -201,6 +201,7 @@ public class AndroidTTS {
             generateAudioFile(text, new IGenerateTTsCallback() {
                 @Override
                 public void onSuccess(File audio) {
+                    if (mFastMode) return; // for fast mode only
                     if (player != null) {
                         player.stop();
                         player.release();
