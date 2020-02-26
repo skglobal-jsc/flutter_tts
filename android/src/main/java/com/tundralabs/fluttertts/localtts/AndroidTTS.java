@@ -241,6 +241,7 @@ public class AndroidTTS {
     }
 
     public boolean isSpeaking() {
+        if (tts != null && tts.isSpeaking()) return true;
         if (player != null) {
             return player.isPlaying();
         }
